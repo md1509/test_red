@@ -1,6 +1,3 @@
-Here is the complete, formatted content for your `README.md` file, ready to be uploaded to GitHub:
-
-````markdown
 # 📈 Stock Trend Prediction Pipeline
 
 A data engineering pipeline that processes historical stock data to identify price trends. The system ingests **Apple stock data**, performs feature engineering using distributed computing, and provides analytics through an interactive dashboard.
@@ -142,34 +139,3 @@ The final `stock_data` table in PostgreSQL includes:
 ## 6. 📁 Project Structure
 
 The root directory (`Stock-trend-prediction/`) contains the following structure:
-
-````
-
-.
-├── config/              \# Configuration files and settings for services (e.g., Spark config)
-├── dags/                \# Apache Airflow DAG definitions
-├── data/                \# Local storage for raw data files
-├── logs/                \# Log output for Airflow and other services
-├── plugins/             \# Airflow custom operators, hooks, and extensions
-├── scripts/             \# General utility scripts (e.g., MinIO bucket setup)
-├── spark-scripts/       \# PySpark transformation scripts (feature engineering)
-├── Dockerfile.airflow   \# Dockerfile for building the custom Airflow image
-├── Dockerfile.spark     \# Dockerfile for building the custom Spark image
-├── docker-compose.yml   \# Service orchestration for all components
-├── init.sql             \# SQL script to initialize PostgreSQL schemas/tables
-└── .env                 \# Environment variables and secrets (mandatory)
-
-```
-
----
-
-## 7. 👤 Authors
-
-* Mohammed Darwish
-* Asmaa Elrasef
-
-> DSAI 5102 - Data Architecture & Engineering
-> Fall 2025
-```
-
-Do you have any other files or documentation you'd like me to format?
