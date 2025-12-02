@@ -1,131 +1,176 @@
-# **Stock Trend Prediction Pipeline**
+# **📈 Stock Trend Prediction Pipeline**
 
-A data engineering pipeline that processes historical stock data to identify price trends. The system ingests Apple stock data, performs feature engineering using distributed computing, and provides analytics through an interactive dashboard.
+A complete data engineering pipeline that processes historical stock data to detect market trends. The system ingests Apple stock data, performs distributed feature engineering, and provides analytics through an interactive dashboard.
 
-## **1\. Architecture Overview (Medallion Structure)**
+---
 
-The pipeline follows a standardized Medallion architecture, focusing on incremental and idempotent processing across different data quality stages:
+## **1. Architecture Overview (Medallion Structure)**
 
-1. **Data Ingestion (Bronze):** Downloads raw Apple stock data from a source (e.g., GitHub).  
-2. **Raw Storage (Bronze):** Breaks data into monthly chunks and uploads the raw files to the **MinIO** data lake. MD5 checksums are used for integrity checks.  
-3. **Transformation (Silver/Gold):** **Apache Spark** reads the raw files, calculates sophisticated features (like rolling averages and volatility), and enforces schema quality.  
-4. **Feature Store (Gold):** **PostgreSQL** stores the final analytics-ready data, serving as the data warehouse.  
-5. **Visualization:** **Metabase** connects to the PostgreSQL warehouse for interactive dashboards and business intelligence.
+The pipeline follows the **Medallion Architecture**, ensuring scalable, repeatable, and reliable processing:
 
-The pipeline is orchestrated by **Apache Airflow** to manage dependencies and scheduling.
+1. **Data Ingestion (Bronze):**  
+   Downloads raw Apple stock data from a source (e.g., GitHub).
 
-## **2\. Tech Stack**
+2. **Raw Storage (Bronze):**  
+   Breaks data into monthly chunks and uploads them to **MinIO**.  
+   Includes MD5-based integrity validation.
 
-The entire system is containerized using **Docker & Docker Compose** for easy, single-command deployment.
+3. **Transformation (Silver/Gold):**  
+   **Apache Spark** computes features such as moving averages and volatility while enforcing schema quality.
 
-| Component | Technology | Role in Pipeline |
-| :---- | :---- | :---- |
-| **Orchestration** | Apache Airflow | Schedules, manages dependencies, and tracks status of all jobs. |
-| **Data Lake** | MinIO | S3-compatible object storage for raw and intermediate data files. |
-| **Processing** | Apache Spark | Distributed processing engine for scalable feature calculation and transformation. |
-| **Data Warehouse** | PostgreSQL | Stores the final, feature-engineered data for persistent access and querying. |
-| **Visualization** | Metabase | Provides the interactive dashboard and business intelligence interface. |
-| **Deployment** | Docker & Docker Compose | Containerization and service orchestration. |
+4. **Feature Store (Gold):**  
+   **PostgreSQL** holds the analytics-ready dataset.
 
-## **3\. Features Calculated**
+5. **Visualization:**  
+   **Metabase** provides dashboards and business intelligence.
 
-The pipeline's primary goal is to identify trend directions (Up, Down, Neutral) rather than predicting exact prices.
+The full workflow is orchestrated with **Apache Airflow**.
 
-| Feature Name | Category | Calculation Basis | Purpose |  
-| $\\texttt{daily\\\_return}$ | Momentum | Percentage change in closing price. | Fundamental measure of daily performance. |  
-| $\\texttt{ma\\\_10d, ma\\\_20d}$ | Trend | 10-day and 20-day Simple Moving Averages. | Identify short- and medium-term price trends and crossover signals. |  
-| $\\texttt{volatility\\\_10d}$ | Risk | 10-day rolling standard deviation of returns. | Quantify short-term market risk. |  
-| $\\texttt{trend\\\_label}$ | Classification | Categorized based on $\\texttt{daily\\\_return}$ vs. threshold. | The target variable for predictive analysis. |  
-**Trend Label Classification Logic:** The classification uses a simple $\\pm 0.1\\%$ threshold on the daily return:
+---
 
-* **Uptrend:** $\\texttt{daily\\\_return} \> 0.1\\%$  
-* **Downtrend:** $\\texttt{daily\\\_return} \< \-0.1\\%$  
-* **Neutral:** $-0.1\\% \\le \\texttt{daily\\\_return} \\le 0.1\\%$
+## **2. Tech Stack**
 
-## **4\. Conceptual Setup Instructions**
+All components are fully containerized with **Docker + Docker Compose**.
 
-Make sure you have Docker and Docker Compose installed on your system.
+| Component | Technology | Role |
+|----------|------------|------|
+| **Orchestration** | Apache Airflow | Task scheduling and pipeline dependency management |
+| **Data Lake** | MinIO | S3-like object storage for raw/intermediate files |
+| **Processing** | Apache Spark | Distributed computations and feature engineering |
+| **Data Warehouse** | PostgreSQL | Stores the transformed analytics dataset |
+| **Visualization** | Metabase | Interactive dashboards |
+| **Deployment** | Docker & Docker Compose | Environment orchestration |
 
-### **A. Deployment**
+---
 
-1. Clone the repository:
+## **3. Features Calculated**
 
-git clone \[https://github.com/asmaaelrasif/Stock-trend-prediction.git\](https://github.com/asmaaelrasif/Stock-trend-prediction.git)  
-cd Stock-trend-prediction
+The pipeline focuses on **trend classification** (Up, Down, Neutral), not exact price prediction.
 
-2. **Configure Environment Variables:** Ensure the file named .env exists in the root directory. This file contains all necessary ports and default credentials for the services to communicate and is mandatory before running the containers. **Note:** Modify credentials in this file if you plan to use this setup in a production environment.  
-3. Build and start all services:
+| Feature | Category | Basis | Purpose |
+|--------|----------|--------|---------|
+| `daily_return` | Momentum | % change in closing price | Core performance metric |
+| `ma_10d`, `ma_20d` | Trend | 10-day & 20-day SMA | Identifies trend & crossovers |
+| `volatility_10d` | Risk | 10-day rolling std of returns | Measures short-term risk |
+| `trend_label` | Classification | Based on `daily_return` threshold | Target variable |
 
-docker-compose up \-d \--build
+### **Trend Label Classification Logic**
 
-4. Initialize Airflow (Creates users, connections, and sets up the environment):
+Using a ±0.1% threshold on daily returns:
 
-docker compose up airflow-init
+- **Uptrend:** `daily_return > 0.1%`  
+- **Downtrend:** `daily_return < -0.1%`  
+- **Neutral:** between −0.1% and +0.1%
 
-5. Verify all containers are running:
+---
 
-docker ps
+## **4. Conceptual Setup Instructions**
 
-6. Access the services:  
-* **Airflow:** http://localhost:8080 (Orchestration)  
-* **pgAdmin:** http://localhost:5050/ (PostgreSQL GUI)  
-* **MinIO:** http://localhost:9001 (Data Lake UI)  
-* **Metabase:** http://localhost:3000 (Dashboard)
+Ensure **Docker** and **Docker Compose** are installed.
+
+### **A. Deployment Steps**
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/asmaaelrasif/Stock-trend-prediction.git
+   cd Stock-trend-prediction
+````
+
+2. **Create & configure the `.env` file:**
+   Must exist in the root directory.
+   Contains ports, credentials, and config variables.
+
+3. **Build and start all services:**
+
+   ```bash
+   docker-compose up -d --build
+   ```
+
+4. **Initialize Airflow:**
+
+   ```bash
+   docker compose up airflow-init
+   ```
+
+5. **Verify running containers:**
+
+   ```bash
+   docker ps
+   ```
+
+6. **Access the interfaces:**
+
+   * **Airflow:** [http://localhost:8080](http://localhost:8080)
+   * **pgAdmin:** [http://localhost:5050](http://localhost:5050)
+   * **MinIO:** [http://localhost:9001](http://localhost:9001)
+   * **Metabase:** [http://localhost:3000](http://localhost:3000)
+
+---
 
 ### **B. How to Use**
 
-1. Open the Airflow web interface.  
-2. Enable and manually trigger the stock\_prediction\_dag.  
-3. Monitor the pipeline execution (Ingest $\\rightarrow$ Chunk $\\rightarrow$ Spark Transform $\\rightarrow$ Load to Postgres).  
-4. Once processing completes, access the Metabase dashboard to view trend analytics.
+1. Open the Airflow UI.
+2. Enable and trigger the `stock_prediction_dag`.
+3. Watch the pipeline steps:
+   **Ingest → Chunk → Spark Transform → Load to Postgres**
+4. After completion, open Metabase to explore the dashboards.
 
-## **5\. Pipeline Details and Limitations**
+---
+
+## **5. Pipeline Details and Limitations**
 
 ### **Incremental Processing**
 
-The pipeline runs daily and only processes new data chunks. It uses a **PostgreSQL tracking table** to remember which months have already been processed and relies on **MD5 checksums** to detect file changes. Crucially, the Spark job fetches the last 20 days of data from the previous period to ensure accurate rolling metric calculations (like $\\texttt{ma\\\_10d}$) at the start of a new monthly chunk, preventing cold-start issues.
+* Runs **daily** and only processes *new* monthly chunks.
+* Uses a **PostgreSQL tracking table** to avoid reprocessing.
+* **MD5 checksums** detect modified raw data.
+* Spark always loads the **last 20 days** from previous months to ensure correct rolling-window calculations.
 
 ### **Database Schema**
 
-The final stock\_data table in PostgreSQL includes:
+Fields include:
 
-* date, open, high, low, close, volume  
-* ticker, name  
-* prev\_close, daily\_return  
-* trend\_label  
-* ma10, ma20  
-* volatility\_10d  
-* source\_file (for data lineage)
+* Core OHLCV fields
+* `ticker`, `name`
+* `prev_close`, `daily_return`
+* `trend_label`
+* `ma10`, `ma20`
+* `volatility_10d`
+* `source_file` (lineage tracking)
 
 ### **Known Limitations**
 
-1. Currently optimized for single-ticker processing (Apple stock only).  
-2. Fixed 20-day lookback window is hardcoded in the Spark script.  
-3. Uses simple append mode for PostgreSQL loads (lacks upsert/merge logic).  
-4. Designed for batch processing (no real-time streaming capability).
+1. Single-ticker (AAPL only).
+2. Rolling-window lookback size fixed at 20 days.
+3. PostgreSQL loads use simple append mode.
+4. Batch-only; no streaming support.
 
-## **6\. Project Structure**
+---
 
-The root directory (Stock-trend-prediction/) contains the following structure:
+## **6. Project Structure**
 
-.  
-├── config/              \# Configuration files and settings for services (e.g., Spark config)  
-├── dags/                \# Apache Airflow DAG definitions  
-├── data/                \# Local storage for raw data files  
-├── logs/                \# Log output for Airflow and other services  
-├── plugins/             \# Airflow custom operators, hooks, and extensions  
-├── scripts/             \# General utility scripts (e.g., MinIO bucket setup)  
-├── spark-scripts/       \# PySpark transformation scripts (feature engineering)  
-├── Dockerfile.airflow   \# Dockerfile for building the custom Airflow image  
-├── Dockerfile.spark     \# Dockerfile for building the custom Spark image  
-├── docker-compose.yml   \# Service orchestration for all components  
-├── init.sql             \# SQL script to initialize PostgreSQL schemas/tables  
-└── .env                 \# Environment variables and secrets (mandatory)
+```
+Stock-trend-prediction/
+├── config/              # Service configs (Spark, Airflow, etc.)
+├── dags/                # Airflow DAGs
+├── data/                # Local raw data storage
+├── logs/                # Airflow & service logs
+├── plugins/             # Custom Airflow hooks/operators
+├── scripts/             # Utility scripts (e.g., MinIO setup)
+├── spark-scripts/       # PySpark feature engineering scripts
+├── Dockerfile.airflow   # Custom Airflow image
+├── Dockerfile.spark     # Custom Spark image
+├── docker-compose.yml   # Main orchestration file
+├── init.sql             # PostgreSQL initialization
+└── .env                 # Environment variables (required)
+```
 
-## **7\. Authors**
+---
 
-* Mohammed Darwish  
-* Asmaa Elrasef
+## **7. Authors**
 
-DSAI 5102 \- Data Architecture & Engineering  
-Fall 2025
+* **Mohammed Darwish**
+* **Asmaa Elrasef**
+
+*DSAl 5102 — Data Architecture & Engineering
+Fall 2025*
